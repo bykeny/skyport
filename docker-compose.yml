@@ -1,0 +1,103 @@
+services:
+  db-flight-scheduling:
+    image: postgres:16
+    container_name: db-flight-scheduling
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-airport_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airport_pass}
+      POSTGRES_DB: flight_scheduling
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-flight-scheduling-data:/var/lib/postgresql/data
+
+  db-gate-management:
+    image: postgres:16
+    container_name: db-gate-management
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-airport_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airport_pass}
+      POSTGRES_DB: gate_management
+    ports:
+      - "5433:5432"
+    volumes:
+      - db-gate-management-data:/var/lib/postgresql/data
+
+  db-passenger-checkin:
+    image: postgres:16
+    container_name: db-passenger-checkin
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-airport_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airport_pass}
+      POSTGRES_DB: passenger_checkin
+    ports:
+      - "5434:5432"
+    volumes:
+      - db-passenger-checkin-data:/var/lib/postgresql/data
+
+  db-baggage-tracking:
+    image: postgres:16
+    container_name: db-baggage-tracking
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-airport_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airport_pass}
+      POSTGRES_DB: baggage_tracking
+    ports:
+      - "5435:5432"
+    volumes:
+      - db-baggage-tracking-data:/var/lib/postgresql/data
+
+  db-retail-dutyfree:
+    image: postgres:16
+    container_name: db-retail-dutyfree
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-airport_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airport_pass}
+      POSTGRES_DB: retail_dutyfree
+    ports:
+      - "5436:5432"
+    volumes:
+      - db-retail-dutyfree-data:/var/lib/postgresql/data
+
+  db-notification:
+    image: postgres:16
+    container_name: db-notification
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-airport_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airport_pass}
+      POSTGRES_DB: notification
+    ports:
+      - "5437:5432"
+    volumes:
+      - db-notification-data:/var/lib/postgresql/data
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
+
+volumes:
+  db-flight-scheduling-data:
+  db-gate-management-data:
+  db-passenger-checkin-data:
+  db-baggage-tracking-data:
+  db-retail-dutyfree-data:
+  db-notification-data:
