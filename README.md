@@ -18,6 +18,7 @@ This repository hosts an Airport Management System built for an Enterprise Syste
 ## Local Infrastructure (Docker)
 The root docker-compose.yml provides:
 - 6 isolated Postgres instances (one per backend service)
+- Passenger Check-in service container for Checkpoint 1
 - Kafka + Zookeeper for asynchronous messaging
 
 ### Default Database Ports
@@ -34,11 +35,26 @@ The root docker-compose.yml provides:
 
 You can override these with environment variables when running Docker.
 
+### Service Ports
+- Passenger Check-in Service: 8083
+
+Swagger for the Passenger Check-in service is available at:
+
+```text
+http://localhost:8083/swagger-ui.html
+```
+
 ## Running the Stack
 From the repository root:
 
 ```bash
 docker-compose up -d
+```
+
+To run only the Passenger Check-in checkpoint service and its dependencies:
+
+```bash
+docker-compose up passenger-checkin-service
 ```
 
 Check container status:
@@ -54,6 +70,6 @@ docker-compose down -v
 ```
 
 ## Next Steps
-- Initialize each service with Spring Boot and connect it to its matching database.
+- Initialize remaining services with Spring Boot and connect them to their matching databases.
 - Build the Vue.js frontend inside frontend/.
 - Add shared infrastructure scripts or configs under infrastructure/.

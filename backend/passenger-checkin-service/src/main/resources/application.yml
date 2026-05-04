@@ -1,0 +1,41 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: passenger-checkin-service
+  datasource:
+    url: ${CHECKIN_DB_URL:jdbc:postgresql://localhost:5434/passenger_checkin}
+    username: ${POSTGRES_USER:airport_user}
+    password: ${POSTGRES_PASSWORD:airport_pass}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+app:
+  topics:
+    checkin-events: checkin-events
+  services:
+    flight-scheduling-url: ${FLIGHT_SCHEDULING_URL:http://localhost:8081}
+  flight-validation:
+    enabled: ${FLIGHT_VALIDATION_ENABLED:false}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
