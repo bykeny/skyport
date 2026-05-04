@@ -1,7 +1,5 @@
 server:
   port: 8082
-server:
-  port: 8082
 
 spring:
   application:
@@ -40,40 +38,5 @@ management:
     web:
       exposure:
         include: health,info
-spring:
-  application:
-    name: gate-management-service
-  datasource:
-    url: ${GATE_DB_URL:jdbc:postgresql://localhost:5433/gate_management}
-    username: ${POSTGRES_USER:airport_user}
-    password: ${POSTGRES_PASSWORD:airport_pass}
-  jpa:
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
-    consumer:
-      group-id: gate-mgmt-service
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "*"
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-    properties:
-      spring.json.add.type.headers: false
 
-app:
-  topics:
-    flight-events: flight-events
-    gate-events: gate-events
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
