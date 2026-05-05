@@ -1,75 +1,143 @@
 # Airport Management System
 
 ## Overview
-This repository hosts an Airport Management System built for an Enterprise System Integration course. The backend is a set of Spring Boot microservices and a shared API gateway. The frontend is a Vue.js application. Infrastructure services include per-service PostgreSQL databases and Kafka for async messaging.
+This repository contains an Airport Management System for an Enterprise System Integration course. The backend is organized as Spring Boot microservices with a shared API gateway placeholder, and the frontend is planned as a Vue.js application. Local infrastructure uses one PostgreSQL database per service plus Kafka/Zookeeper for asynchronous communication.
 
 ## Repository Structure
-- backend/
-  - api-gateway/
-  - flight-scheduling-service/
-  - gate-management-service/
-  - passenger-checkin-service/
-  - baggage-tracking-service/
-  - retail-dutyfree-service/
-  - notification-service/
-- frontend/
-- infrastructure/
+- `backend/`
+  - `api-gateway/` (planned)
+  - `flight-scheduling-service/` (implemented)
+  - `gate-management-service/` (implemented)
+  - `passenger-checkin-service/` (implemented)
+  - `baggage-tracking-service/` (implemented)
+  - `notification-service/` (implemented)
+  - `retail-dutyfree-service/` (planned)
+- `frontend/` (planned Vue.js app)
+- `infrastructure/` (shared configs and scripts)
+
+## Implemented Services
+
+| Service | Port | Database | Swagger UI | Notes |
+| --- | ---: | --- | --- | --- |
+| Flight Scheduling | 8081 | `jdbc:postgresql://localhost:5432/flight_scheduling` | `http://localhost:8081/swagger-ui.html` | Flight lifecycle, flight events to Kafka |
+| Gate Management | 8082 | `jdbc:postgresql://localhost:5433/gate_management` | `http://localhost:8082/swagger-ui.html` | Gate assignment, consumes flight events |
+| Passenger Check-in | 8083 | `jdbc:postgresql://localhost:5434/passenger_checkin` | `http://localhost:8083/swagger-ui.html` | Check-in flow, produces check-in events |
+| Baggage Tracking | 8084 | `jdbc:postgresql://localhost:5435/baggage_tracking` | `http://localhost:8084/swagger-ui.html` | Baggage lifecycle, consumes check-in/flight events |
+| Notification | 8086 | `jdbc:postgresql://localhost:5437/notification` | `http://localhost:8086/swagger-ui.html` | Notification delivery and templates |
 
 ## Local Infrastructure (Docker)
-The root docker-compose.yml provides:
-- 6 isolated Postgres instances (one per backend service)
-- Passenger Check-in service container for Checkpoint 1
-- Kafka + Zookeeper for asynchronous messaging
+The root `docker-compose.yml` starts:
+- 6 isolated PostgreSQL containers, one per business service
+- Kafka and Zookeeper for asynchronous communication
 
 ### Default Database Ports
-- Flight Scheduling: 5432
-- Gate Management: 5433
-- Passenger Check-in: 5434
-- Baggage Tracking: 5435
-- Retail/Duty-free: 5436
-- Notification: 5437
+- Flight Scheduling: `5432`
+- Gate Management: `5433`
+- Passenger Check-in: `5434`
+- Baggage Tracking: `5435`
+- Retail/Duty-free: `5436` (reserved for future service)
+- Notification: `5437`
 
 ### Default Credentials
-- POSTGRES_USER: airport_user
-- POSTGRES_PASSWORD: airport_pass
+- `POSTGRES_USER=airport_user`
+- `POSTGRES_PASSWORD=airport_pass`
 
-You can override these with environment variables when running Docker.
+You can override these with environment variables if needed.
 
-### Service Ports
-- Passenger Check-in Service: 8083
+## How to Run
 
-Swagger for the Passenger Check-in service is available at:
-
-```text
-http://localhost:8083/swagger-ui.html
-```
-
-## Running the Stack
+### 1) Start the infrastructure
 From the repository root:
 
 ```bash
 docker-compose up -d
 ```
 
-To run only the Passenger Check-in checkpoint service and its dependencies:
-
-```bash
-docker-compose up passenger-checkin-service
-```
-
-Check container status:
+Verify it is running:
 
 ```bash
 docker-compose ps
 ```
 
-Stop and remove containers:
+### 2) Start a service
+Each service can be started independently after the infrastructure is up.
+
+If you have Java 21 and Maven installed locally:
 
 ```bash
-docker-compose down -v
+cd backend/notification-service
+mvn clean spring-boot:run
 ```
 
+If you prefer Docker for builds/runs on Windows:
+
+```powershell
+docker run --rm -v "$((Get-Location).Path):/workspace" -w /workspace maven:3.9.9-eclipse-temurin-21 mvn -f backend/notification-service/pom.xml clean test
+```
+
+Use the same pattern for the other backend services by replacing the service folder and port.
+
+### 3) Open Swagger UI
+After a service starts, open its Swagger UI in a browser:
+
+- Flight Scheduling: `http://localhost:8081/swagger-ui.html`
+- Gate Management: `http://localhost:8082/swagger-ui.html`
+- Passenger Check-in: `http://localhost:8083/swagger-ui.html`
+- Baggage Tracking: `http://localhost:8084/swagger-ui.html`
+- Notification: `http://localhost:8086/swagger-ui.html`
+
+OpenAPI JSON is available at `/api-docs` for services that expose springdoc.
+
+### 4) Test service endpoints
+Swagger is the fastest way to test endpoints because request/response payloads are documented there.
+
+You can also use `curl` or Postman. Example health checks:
+
+```bash
+curl http://localhost:8083/actuator/health
+curl http://localhost:8086/actuator/health
+```
+
+Example endpoint tests:
+
+```bash
+# Passenger Check-in
+curl -X POST http://localhost:8083/api/v1/checkins \
+  -H "Content-Type: application/json" \
+  -d '{"passengerId":1,"flightId":1001}'
+
+# Notification
+curl -X POST http://localhost:8086/api/v1/notifications \
+  -H "Content-Type: application/json" \
+  -d '{"recipientId":1,"subject":"Test","message":"Hello"}'
+```
+
+## Testing
+The implemented services include controller tests using `@WebMvcTest` and mocked dependencies.
+
+Run the tests for a service:
+
+```bash
+cd backend/flight-scheduling-service
+mvn test
+```
+
+Repeat for the other services:
+- `backend/gate-management-service`
+- `backend/passenger-checkin-service`
+- `backend/baggage-tracking-service`
+- `backend/notification-service`
+
+Expected coverage pattern:
+- at least one happy-path test
+- at least one error-case test
+- mocked dependency or service layer interaction
+
+## Notes
+- `api-gateway/` and `retail-dutyfree-service/` are currently placeholders.
+- The Vue.js frontend has not been implemented yet.
+
 ## Next Steps
-- Initialize remaining services with Spring Boot and connect them to their matching databases.
-- Build the Vue.js frontend inside frontend/.
-- Add shared infrastructure scripts or configs under infrastructure/.
+- Implement the API Gateway.
+- Add the Retail/Duty-free service.
+- Build the Vue.js frontend.
