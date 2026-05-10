@@ -26,9 +26,11 @@ This repository contains an Airport Management System for an Enterprise System I
 | Notification | 8086 | `jdbc:postgresql://localhost:5437/notification` | `http://localhost:8086/swagger-ui.html` | Notification delivery and templates |
 
 ## Local Infrastructure (Docker)
-The root `docker-compose.yml` starts:
+By default, the root `docker-compose.yml` starts **infrastructure only**:
 - 6 isolated PostgreSQL containers, one per business service
 - Kafka and Zookeeper for asynchronous communication
+
+The Compose file also contains a couple of Spring Boot services for an **all-in-docker** workflow, but they are disabled by default via a Compose profile to avoid host port conflicts when you run services locally.
 
 ### Default Database Ports
 - Flight Scheduling: `5432`
@@ -50,8 +52,10 @@ You can override these with environment variables if needed.
 From the repository root:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
+
+(If you're using the older v1 plugin, use `docker-compose up -d` instead.)
 
 Verify it is running:
 
@@ -68,6 +72,14 @@ If you have Java 21 and Maven installed locally:
 cd backend/notification-service
 mvn clean spring-boot:run
 ```
+
+If you want to run services in Docker (instead of locally), enable the app containers:
+
+```bash
+docker compose --profile apps up -d
+```
+
+Important: don't run the same service both ways at the same time. If you see `Port 808X was already in use`, it usually means that service is already running in Docker and publishing that port. Either stop that container (e.g., `docker compose stop notification-service`) or run the local JVM on a different port.
 
 If you prefer Docker for builds/runs on Windows:
 

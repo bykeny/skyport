@@ -38,6 +38,8 @@ services:
   passenger-checkin-service:
     image: maven:3.9-eclipse-temurin-21
     container_name: passenger-checkin-service
+    profiles:
+      - apps
     working_dir: /workspace
     depends_on:
       - db-passenger-checkin
@@ -95,6 +97,8 @@ services:
   notification-service:
     image: maven:3.9-eclipse-temurin-21
     container_name: notification-service
+    profiles:
+      - apps
     working_dir: /workspace
     depends_on:
       - db-notification
