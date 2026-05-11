@@ -32,6 +32,12 @@ public class NotificationController {
         this.notificationService = notificationService;
     }
 
+    @GetMapping
+    @Operation(summary = "List all notifications")
+    public ResponseEntity<List<NotificationResponse>> getAllNotifications() {
+        return ResponseEntity.ok(notificationService.getAllNotifications());
+    }
+
     @PostMapping
     @Operation(summary = "Send a new notification")
     @ApiResponses({

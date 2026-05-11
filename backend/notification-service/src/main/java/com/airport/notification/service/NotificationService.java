@@ -28,6 +28,12 @@ public class NotificationService {
         this.templateRepository = templateRepository;
     }
 
+    public List<NotificationResponse> getAllNotifications() {
+        return notificationRepository.findAll().stream()
+                .map(this::toNotificationResponse)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public NotificationResponse sendNotification(SendNotificationRequest request) {
         Notification notification = new Notification();
