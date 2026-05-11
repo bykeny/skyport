@@ -1,0 +1,72 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:5173"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - Content-Type
+      routes:
+        - id: flight-scheduling-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/flights/**,/api/flights
+          filters:
+            - RewritePath=/api/flights(?<segment>/?.*), /api/v1/flights${segment}
+
+        - id: gate-management-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/gates/**,/api/gates
+          filters:
+            - RewritePath=/api/gates(?<segment>/?.*), /api/v1/gates${segment}
+
+        - id: passenger-checkin-service
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/checkin/**,/api/checkin
+          filters:
+            - RewritePath=/api/checkin(?<segment>/?.*), /api/v1/checkins${segment}
+
+        - id: baggage-tracking-service
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/baggage/**,/api/baggage
+          filters:
+            - RewritePath=/api/baggage(?<segment>/?.*), /api/v1/baggage${segment}
+
+        - id: retail-dutyfree-service
+          uri: http://localhost:8085
+          predicates:
+            - Path=/api/retail/**,/api/retail
+          filters:
+            - RewritePath=/api/retail(?<segment>/?.*), /api/v1${segment}
+
+        # More specific route must come first so templates don't get rewritten to /api/v1/notifications/templates
+        - id: notification-service-templates
+          uri: http://localhost:8086
+          predicates:
+            - Path=/api/notifications/templates/**,/api/notifications/templates
+          filters:
+            - RewritePath=/api/notifications/templates(?<segment>/?.*), /api/v1/templates${segment}
+
+        - id: notification-service-notifications
+          uri: http://localhost:8086
+          predicates:
+            - Path=/api/notifications/**,/api/notifications
+          filters:
+            - RewritePath=/api/notifications(?<segment>/?.*), /api/v1/notifications${segment}
