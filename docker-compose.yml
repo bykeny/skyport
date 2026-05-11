@@ -146,6 +146,7 @@ services:
     working_dir: /workspace
     depends_on:
       - db-passenger-checkin
+      - flight-scheduling-service
       - kafka
     environment:
       CHECKIN_DB_URL: jdbc:postgresql://db-passenger-checkin:5432/passenger_checkin
@@ -153,7 +154,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airport_pass}
       KAFKA_BOOTSTRAP: kafka:29092
       FLIGHT_SCHEDULING_URL: http://flight-scheduling-service:8081
-      FLIGHT_VALIDATION_ENABLED: ${FLIGHT_VALIDATION_ENABLED:-false}
+      FLIGHT_VALIDATION_ENABLED: ${FLIGHT_VALIDATION_ENABLED:-true}
     ports:
       - "8083:8083"
     volumes:
@@ -180,6 +181,41 @@ services:
       - notification-maven-cache:/root/.m2
     command: mvn spring-boot:run
 
+  retail-dutyfree-service:
+    image: maven:3.9-eclipse-temurin-21
+    container_name: retail-dutyfree-service
+    profiles:
+      - apps
+    working_dir: /workspace
+    depends_on:
+      - db-retail-dutyfree
+      - passenger-checkin-service
+    environment:
+      RETAIL_DB_URL: jdbc:postgresql://db-retail-dutyfree:5432/retail_dutyfree
+      POSTGRES_USER: ${POSTGRES_USER:-airport_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airport_pass}
+      PASSENGER_CHECKIN_URL: http://passenger-checkin-service:8083
+      CHECKIN_VALIDATION_ENABLED: ${CHECKIN_VALIDATION_ENABLED:-true}
+    ports:
+      - "8085:8085"
+    volumes:
+      - ./backend/retail-dutyfree-service:/workspace
+      - retail-dutyfree-maven-cache:/root/.m2
+    command: mvn spring-boot:run
+
+  frontend:
+    image: nginx:1.27-alpine
+    container_name: airport-frontend
+    profiles:
+      - apps
+    depends_on:
+      - passenger-checkin-service
+      - retail-dutyfree-service
+    ports:
+      - "5173:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+
 volumes:
   db-flight-scheduling-data:
   db-gate-management-data:
@@ -191,3 +227,4 @@ volumes:
   gate-management-maven-cache:
   passenger-checkin-maven-cache:
   notification-maven-cache:
+  retail-dutyfree-maven-cache:

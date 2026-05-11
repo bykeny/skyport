@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Airport Operations Console</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-mark">AMS</span>
+        <div>
+          <p class="eyebrow">Airport Operations</p>
+          <h1 id="pageTitle">Command Center</h1>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Main navigation">
+        <button class="nav-link is-active" type="button" data-view="dashboard">Overview</button>
+        <button class="nav-link" type="button" data-view="checkin">Passenger Check-in</button>
+        <button class="nav-link" type="button" data-view="retail">Duty-free Retail</button>
+      </nav>
+    </header>
+
+    <main class="shell">
+      <section id="dashboardView" class="view is-active" data-title="Command Center">
+        <div class="overview-grid">
+          <button class="service-tile" type="button" data-view-target="checkin">
+            <span class="tile-kicker">Service 1</span>
+            <strong>Passenger Check-in</strong>
+            <span>Manage boarding passes and list check-ins by flight.</span>
+          </button>
+          <button class="service-tile" type="button" data-view-target="retail">
+            <span class="tile-kicker">Service 2</span>
+            <strong>Duty-free Retail</strong>
+            <span>Manage products and create orders for checked-in passengers.</span>
+          </button>
+        </div>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Runtime Endpoints</h2>
+          </div>
+          <div class="endpoint-grid">
+            <label>
+              Check-in API
+              <input id="apiBaseUrl" type="url" value="http://localhost:8083">
+            </label>
+            <label>
+              Retail API
+              <input id="retailApiBaseUrl" type="url" value="http://localhost:8085">
+            </label>
+          </div>
+        </section>
+      </section>
+
+      <section id="checkinView" class="view" data-title="Passenger Check-in">
+        <section class="workspace">
+          <form id="createForm" class="panel">
+            <div class="panel-header">
+              <h2>Create Check-in</h2>
+              <span id="createState" class="state">Ready</span>
+            </div>
+
+            <div class="field-grid">
+              <label>
+                Passenger ID
+                <input name="passengerId" type="number" min="1" value="1" required>
+              </label>
+              <label>
+                Flight ID
+                <input name="flightId" type="number" min="1" value="1" required>
+              </label>
+              <label>
+                Seat
+                <input name="seatNumber" type="text" value="12A" required>
+              </label>
+              <label>
+                Bags
+                <input name="baggageCount" type="number" min="0" value="1">
+              </label>
+            </div>
+
+            <button type="submit">Create</button>
+            <pre id="createResult" class="result" aria-live="polite"></pre>
+          </form>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h2>Flight Check-ins</h2>
+              <span id="listState" class="state">Ready</span>
+            </div>
+
+            <form id="listForm" class="inline-form">
+              <label>
+                Flight ID
+                <input name="flightId" type="number" min="1" value="1" required>
+              </label>
+              <button type="submit">Load</button>
+            </form>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Passenger</th>
+                    <th>Seat</th>
+                    <th>Boarding Pass</th>
+                    <th>Bags</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="checkinRows">
+                  <tr>
+                    <td colspan="6" class="empty">No data loaded</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+      </section>
+
+      <section id="retailView" class="view" data-title="Duty-free Retail">
+        <section class="workspace">
+          <form id="productForm" class="panel">
+            <div class="panel-header">
+              <h2>Duty-free Product</h2>
+              <span id="productState" class="state">Ready</span>
+            </div>
+
+            <div class="field-grid">
+              <label>
+                SKU
+                <input name="sku" type="text" value="DF-CHOC-01" required>
+              </label>
+              <label>
+                Category
+                <input name="category" type="text" value="Confectionery" required>
+              </label>
+              <label>
+                Name
+                <input name="name" type="text" value="Tallinn Chocolate Box" required>
+              </label>
+              <label>
+                Price
+                <input name="price" type="number" min="0.01" step="0.01" value="12.50" required>
+              </label>
+              <label>
+                Stock
+                <input name="stockQuantity" type="number" min="0" value="20" required>
+              </label>
+            </div>
+
+            <button type="submit">Add Product</button>
+            <pre id="productResult" class="result" aria-live="polite"></pre>
+          </form>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h2>Duty-free Orders</h2>
+              <span id="orderState" class="state">Ready</span>
+            </div>
+
+            <form id="orderForm" class="field-grid order-grid">
+              <label>
+                Passenger ID
+                <input name="passengerId" type="number" min="1" value="501" required>
+              </label>
+              <label>
+                Flight ID
+                <input name="flightId" type="number" min="1" value="1" required>
+              </label>
+              <label>
+                Product ID
+                <input name="productId" type="number" min="1" value="1" required>
+              </label>
+              <label>
+                Quantity
+                <input name="quantity" type="number" min="1" value="1" required>
+              </label>
+              <button type="submit">Create Order</button>
+              <button id="loadProductsButton" type="button">Load Products</button>
+            </form>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>SKU</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                  </tr>
+                </thead>
+                <tbody id="productRows">
+                  <tr>
+                    <td colspan="5" class="empty">No products loaded</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <pre id="orderResult" class="result" aria-live="polite"></pre>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

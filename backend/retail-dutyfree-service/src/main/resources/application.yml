@@ -1,0 +1,34 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: retail-dutyfree-service
+  datasource:
+    url: ${RETAIL_DB_URL:jdbc:postgresql://localhost:5436/retail_dutyfree}
+    username: ${POSTGRES_USER:airport_user}
+    password: ${POSTGRES_PASSWORD:airport_pass}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+
+app:
+  services:
+    passenger-checkin-url: ${PASSENGER_CHECKIN_URL:http://localhost:8083}
+  checkin-validation:
+    enabled: ${CHECKIN_VALIDATION_ENABLED:true}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
