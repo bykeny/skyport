@@ -22,6 +22,18 @@ services:
       - "5433:5432"
     volumes:
       - db-gate-management-data:/var/lib/postgresql/data
+    
+  db-security-clearance:
+    image: postgres:16
+    container_name: db-security-clearance
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-airport_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airport_pass}
+      POSTGRES_DB: security_clearance
+    ports:
+      - "5438:5432"
+    volumes:
+      - db-security-clearance-data:/var/lib/postgresql/data
 
   db-passenger-checkin:
     image: postgres:16
@@ -203,6 +215,27 @@ services:
       - retail-dutyfree-maven-cache:/root/.m2
     command: mvn spring-boot:run
 
+  security-clearance-service:
+    image: maven:3.9-eclipse-temurin-21
+    container_name: security-clearance-service
+    profiles:
+      - apps
+    working_dir: /workspace
+    depends_on:
+      - db-security-clearance
+      - kafka
+    environment:
+      SECURITY_DB_URL: jdbc:postgresql://db-security-clearance:5432/security_clearance
+      POSTGRES_USER: ${POSTGRES_USER:-airport_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airport_pass}
+      KAFKA_BOOTSTRAP: kafka:29092
+    ports:
+      - "8087:8085"
+    volumes:
+      - ./backend/security-clearance-service:/workspace
+      - security-clearance-maven-cache:/root/.m2
+    command: mvn spring-boot:run
+
   frontend:
     image: nginx:1.27-alpine
     container_name: airport-frontend
@@ -221,10 +254,12 @@ volumes:
   db-gate-management-data:
   db-passenger-checkin-data:
   db-baggage-tracking-data:
+  db-security-clearance-data:
   db-retail-dutyfree-data:
   db-notification-data:
   flight-scheduling-maven-cache:
   gate-management-maven-cache:
+  security-clearance-maven-cache:
   passenger-checkin-maven-cache:
   notification-maven-cache:
   retail-dutyfree-maven-cache:
