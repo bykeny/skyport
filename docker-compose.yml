@@ -108,6 +108,25 @@ services:
     ports:
       - "9092:9092"
 
+  api-gateway:
+    image: maven:3.9-eclipse-temurin-21
+    container_name: api-gateway
+    profiles:
+      - apps
+    working_dir: /workspace
+    depends_on:
+      - flight-scheduling-service
+      - gate-management-service
+      - passenger-checkin-service
+      - retail-dutyfree-service
+      - notification-service
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend/api-gateway:/workspace
+      - api-gateway-maven-cache:/root/.m2
+    command: mvn spring-boot:run
+
   flight-scheduling-service:
     image: maven:3.9-eclipse-temurin-21
     container_name: flight-scheduling-service
@@ -257,6 +276,7 @@ volumes:
   db-security-clearance-data:
   db-retail-dutyfree-data:
   db-notification-data:
+  api-gateway-maven-cache:
   flight-scheduling-maven-cache:
   gate-management-maven-cache:
   security-clearance-maven-cache:
