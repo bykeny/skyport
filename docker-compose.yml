@@ -35,29 +35,6 @@ services:
     volumes:
       - db-passenger-checkin-data:/var/lib/postgresql/data
 
-  passenger-checkin-service:
-    image: maven:3.9-eclipse-temurin-21
-    container_name: passenger-checkin-service
-    profiles:
-      - apps
-    working_dir: /workspace
-    depends_on:
-      - db-passenger-checkin
-      - kafka
-    environment:
-      CHECKIN_DB_URL: jdbc:postgresql://db-passenger-checkin:5432/passenger_checkin
-      POSTGRES_USER: ${POSTGRES_USER:-airport_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airport_pass}
-      KAFKA_BOOTSTRAP: kafka:29092
-      FLIGHT_SCHEDULING_URL: http://flight-scheduling-service:8081
-      FLIGHT_VALIDATION_ENABLED: ${FLIGHT_VALIDATION_ENABLED:-false}
-    ports:
-      - "8083:8083"
-    volumes:
-      - ./backend/passenger-checkin-service:/workspace
-      - passenger-checkin-maven-cache:/root/.m2
-    command: mvn spring-boot:run
-
   db-baggage-tracking:
     image: postgres:16
     container_name: db-baggage-tracking
@@ -94,25 +71,6 @@ services:
     volumes:
       - db-notification-data:/var/lib/postgresql/data
 
-  notification-service:
-    image: maven:3.9-eclipse-temurin-21
-    container_name: notification-service
-    profiles:
-      - apps
-    working_dir: /workspace
-    depends_on:
-      - db-notification
-    environment:
-      NOTIFICATION_DB_URL: jdbc:postgresql://db-notification:5432/notification
-      POSTGRES_USER: ${POSTGRES_USER:-airport_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airport_pass}
-    ports:
-      - "8086:8086"
-    volumes:
-      - ./backend/notification-service:/workspace
-      - notification-maven-cache:/root/.m2
-    command: mvn spring-boot:run
-
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.1
     container_name: zookeeper
@@ -138,12 +96,98 @@ services:
     ports:
       - "9092:9092"
 
+  flight-scheduling-service:
+    image: maven:3.9-eclipse-temurin-21
+    container_name: flight-scheduling-service
+    profiles:
+      - apps
+    working_dir: /workspace
+    depends_on:
+      - db-flight-scheduling
+      - kafka
+    environment:
+      FLIGHT_DB_URL: jdbc:postgresql://db-flight-scheduling:5432/flight_scheduling
+      POSTGRES_USER: ${POSTGRES_USER:-airport_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airport_pass}
+      KAFKA_BOOTSTRAP: kafka:29092
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./backend/flight-scheduling-service:/workspace
+      - flight-scheduling-maven-cache:/root/.m2
+    command: mvn spring-boot:run
+
+  gate-management-service:
+    image: maven:3.9-eclipse-temurin-21
+    container_name: gate-management-service
+    profiles:
+      - apps
+    working_dir: /workspace
+    depends_on:
+      - db-gate-management
+      - kafka
+    environment:
+      GATE_DB_URL: jdbc:postgresql://db-gate-management:5432/gate_management
+      POSTGRES_USER: ${POSTGRES_USER:-airport_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airport_pass}
+      KAFKA_BOOTSTRAP: kafka:29092
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./backend/gate-management-service:/workspace
+      - gate-management-maven-cache:/root/.m2
+    command: mvn spring-boot:run
+
+  passenger-checkin-service:
+    image: maven:3.9-eclipse-temurin-21
+    container_name: passenger-checkin-service
+    profiles:
+      - apps
+    working_dir: /workspace
+    depends_on:
+      - db-passenger-checkin
+      - kafka
+    environment:
+      CHECKIN_DB_URL: jdbc:postgresql://db-passenger-checkin:5432/passenger_checkin
+      POSTGRES_USER: ${POSTGRES_USER:-airport_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airport_pass}
+      KAFKA_BOOTSTRAP: kafka:29092
+      FLIGHT_SCHEDULING_URL: http://flight-scheduling-service:8081
+      FLIGHT_VALIDATION_ENABLED: ${FLIGHT_VALIDATION_ENABLED:-false}
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./backend/passenger-checkin-service:/workspace
+      - passenger-checkin-maven-cache:/root/.m2
+    command: mvn spring-boot:run
+
+  notification-service:
+    image: maven:3.9-eclipse-temurin-21
+    container_name: notification-service
+    profiles:
+      - apps
+    working_dir: /workspace
+    depends_on:
+      - db-notification
+    environment:
+      NOTIFICATION_DB_URL: jdbc:postgresql://db-notification:5432/notification
+      POSTGRES_USER: ${POSTGRES_USER:-airport_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airport_pass}
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./backend/notification-service:/workspace
+      - notification-maven-cache:/root/.m2
+    command: mvn spring-boot:run
+
 volumes:
   db-flight-scheduling-data:
   db-gate-management-data:
   db-passenger-checkin-data:
-  passenger-checkin-maven-cache:
-  notification-maven-cache:
   db-baggage-tracking-data:
   db-retail-dutyfree-data:
   db-notification-data:
+  flight-scheduling-maven-cache:
+  gate-management-maven-cache:
+  passenger-checkin-maven-cache:
+  notification-maven-cache:

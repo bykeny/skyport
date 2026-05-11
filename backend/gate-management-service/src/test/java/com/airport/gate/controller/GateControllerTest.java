@@ -1,11 +1,16 @@
 package com.airport.gate.controller;
 
+import com.airport.gate.dto.UpdateGateStatusRequest;
 import com.airport.gate.exception.GlobalExceptionHandler;
 import com.airport.gate.exception.NotFoundException;
 import com.airport.gate.model.Gate;
 import com.airport.gate.model.GateStatus;
 import com.airport.gate.model.GateType;
 import com.airport.gate.service.GateService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.lang.reflect.Field;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -13,9 +18,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.lang.reflect.Field;
-import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -34,17 +36,38 @@ class GateControllerTest {
     @MockBean
     private GateService gateService;
 
+    private ObjectMapper objectMapper;
+
+    @BeforeEach
+    void setup() {
+        objectMapper = new ObjectMapper();
+    }
+
     @Test
-    void list_returnsGates() throws Exception {
-        Gate g1 = new Gate(); setId(g1, 1L); g1.setGateNumber("A1"); g1.setTerminal("T1"); g1.setGateType(GateType.NARROW_BODY); g1.setStatus(GateStatus.AVAILABLE);
-        Gate g2 = new Gate(); setId(g2, 2L); g2.setGateNumber("B2"); g2.setTerminal("T1"); g2.setGateType(GateType.WIDE_BODY); g2.setStatus(GateStatus.MAINTENANCE);
+    void list_returnsAllGates() throws Exception {
+        Gate g1 = buildGate(1L, "A1", "T1", GateType.NARROW_BODY, GateStatus.AVAILABLE);
+        Gate g2 = buildGate(2L, "B2", "T2", GateType.WIDE_BODY, GateStatus.MAINTENANCE);
         when(gateService.list()).thenReturn(List.of(g1, g2));
 
         mockMvc.perform(get("/api/v1/gates"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].gateNumber", is("A1")))
-                .andExpect(jsonPath("$[1].gateNumber", is("B2")));
+                .andExpect(jsonPath("$[0].status", is("AVAILABLE")))
+                .andExpect(jsonPath("$[1].gateNumber", is("B2")))
+                .andExpect(jsonPath("$[1].status", is("MAINTENANCE")));
+    }
+
+    @Test
+    void get_returnsGateDetails() throws Exception {
+        Gate g = buildGate(5L, "C3", "T1", GateType.REGIONAL, GateStatus.AVAILABLE);
+        when(gateService.get(5L)).thenReturn(g);
+
+        mockMvc.perform(get("/api/v1/gates/5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(5)))
+                .andExpect(jsonPath("$.gateNumber", is("C3")))
+                .andExpect(jsonPath("$.terminal", is("T1")));
     }
 
     @Test
@@ -58,18 +81,30 @@ class GateControllerTest {
 
     @Test
     void updateStatus_returnsUpdatedGate() throws Exception {
-        Gate g = new Gate(); setId(g, 10L); g.setGateNumber("C3"); g.setTerminal("T2"); g.setStatus(GateStatus.AVAILABLE);
-        when(gateService.updateStatus(10L, GateStatus.OCCUPIED)).thenReturn(g);
+        Gate g = buildGate(10L, "D4", "T2", GateType.WIDE_BODY, GateStatus.MAINTENANCE);
+        when(gateService.updateStatus(10L, GateStatus.MAINTENANCE)).thenReturn(g);
 
-        mockMvc.perform(patch("/api/v1/gates/10/status").param("status", "OCCUPIED")
-                        .contentType(MediaType.APPLICATION_JSON))
+        UpdateGateStatusRequest req = new UpdateGateStatusRequest();
+        req.setStatus(GateStatus.MAINTENANCE);
+
+        mockMvc.perform(patch("/api/v1/gates/10/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gateNumber", is("C3")));
+                .andExpect(jsonPath("$.gateNumber", is("D4")))
+                .andExpect(jsonPath("$.status", is("MAINTENANCE")));
     }
 
-    private static void setId(Gate g, long id) throws Exception {
+    private Gate buildGate(long id, String number, String terminal, GateType type, GateStatus status)
+            throws Exception {
+        Gate g = new Gate();
         Field idField = Gate.class.getDeclaredField("id");
         idField.setAccessible(true);
         idField.set(g, id);
+        g.setGateNumber(number);
+        g.setTerminal(terminal);
+        g.setGateType(type);
+        g.setStatus(status);
+        return g;
     }
 }

@@ -1,6 +1,5 @@
 package com.airport.flight.config;
 
-import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
@@ -15,13 +14,10 @@ public class OpenApiConfig {
     public OpenAPI flightOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Flight Scheduling API")
-                        .description("Endpoints for registering, updating, searching, and managing flight schedules.")
+                        .title("Flight Scheduling Service API")
+                        .description("Manages flight schedules, status updates, delays, and cancellations. Central data hub for all other services.")
                         .version("v1")
-                        .contact(new Contact().name("Airport Management System"))
-                        .license(new License().name("Apache 2.0")))
-                .externalDocs(new ExternalDocumentation()
-                        .description("Project docs")
-                        .url("https://example.com/docs"));
+                        .contact(new Contact().name("Ibrahim Alibayov"))
+                        .license(new License().name("Apache 2.0")));
     }
 }

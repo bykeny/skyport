@@ -26,38 +26,11 @@ app:
   topics:
     flight-events: flight-events
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-server:
-  port: 8081
-
-spring:
-  application:
-    name: flight-scheduling-service
-  datasource:
-    url: ${FLIGHT_DB_URL:jdbc:postgresql://localhost:5432/flight_scheduling}
-    username: ${POSTGRES_USER:airport_user}
-    password: ${POSTGRES_PASSWORD:airport_pass}
-  jpa:
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-    properties:
-      spring.json.add.type.headers: false
-
-app:
-  topics:
-    flight-events: flight-events
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
 
 management:
   endpoints:

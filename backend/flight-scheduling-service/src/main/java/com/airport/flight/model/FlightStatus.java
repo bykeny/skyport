@@ -1,4 +1,5 @@
 package com.airport.flight.model;
+
 public enum FlightStatus {
     SCHEDULED,
     BOARDING,

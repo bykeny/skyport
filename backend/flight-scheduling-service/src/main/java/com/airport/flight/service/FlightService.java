@@ -1,4 +1,5 @@
 package com.airport.flight.service;
+
 import com.airport.flight.dto.CreateFlightRequest;
 import com.airport.flight.dto.UpdateFlightRequest;
 import com.airport.flight.dto.UpdateStatusRequest;
@@ -8,13 +9,12 @@ import com.airport.flight.exception.NotFoundException;
 import com.airport.flight.model.Flight;
 import com.airport.flight.model.FlightStatus;
 import com.airport.flight.repository.FlightRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class FlightService {
@@ -42,7 +42,8 @@ public class FlightService {
 
     @Transactional(readOnly = true)
     public Flight get(Long id) {
-        return repository.findById(id).orElseThrow(() -> new NotFoundException("Flight %d not found".formatted(id)));
+        return repository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Flight %d not found".formatted(id)));
     }
 
     @Transactional
@@ -58,6 +59,9 @@ public class FlightService {
     @Transactional
     public Flight updateStatus(Long id, UpdateStatusRequest req) {
         Flight f = get(id);
+        if (f.getStatus() == FlightStatus.CANCELLED) {
+            throw new IllegalStateException("Cannot update status of a cancelled flight");
+        }
         f.setStatus(req.getStatus());
         if (req.getActualDeparture() != null) {
             f.setActualDeparture(req.getActualDeparture());
@@ -74,7 +78,14 @@ public class FlightService {
     public Flight cancel(Long id) {
         UpdateStatusRequest req = new UpdateStatusRequest();
         req.setStatus(FlightStatus.CANCELLED);
-        return updateStatus(id, req);
+        Flight f = get(id);
+        f.setStatus(FlightStatus.CANCELLED);
+        Flight saved = repository.save(f);
+        publisher.publishStatusChanged(new FlightStatusChangedEvent(
+                saved.getId(), saved.getFlightNumber(), saved.getStatus(),
+                saved.getScheduledDeparture(), saved.getActualDeparture()
+        ));
+        return saved;
     }
 
     @Transactional(readOnly = true)

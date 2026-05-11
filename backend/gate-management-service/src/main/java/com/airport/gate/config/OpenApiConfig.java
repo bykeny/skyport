@@ -1,6 +1,5 @@
 package com.airport.gate.config;
 
-import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
@@ -15,13 +14,10 @@ public class OpenApiConfig {
     public OpenAPI gateOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Gate Management API")
-                        .description("Endpoints for gate catalog, statuses, and flight gate-assignments.")
+                        .title("Gate Management Service API")
+                        .description("Assigns and manages airport gates. Tracks availability and assigns based on flight type and aircraft size.")
                         .version("v1")
-                        .contact(new Contact().name("Airport Management System"))
-                        .license(new License().name("Apache 2.0")))
-                .externalDocs(new ExternalDocumentation()
-                        .description("Project docs")
-                        .url("https://example.com/docs"));
+                        .contact(new Contact().name("Ibrahim Alibayov"))
+                        .license(new License().name("Apache 2.0")));
     }
 }
