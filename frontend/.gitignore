@@ -36,4 +36,6 @@ coverage
 __screenshots__/
 
 # Vite
+.vite
+node_modules/.vite
 *.timestamp-*-*.mjs
