@@ -2,22 +2,25 @@ import axios from 'axios';
 
 const apiClient = axios.create({
   baseURL: 'http://localhost:8080/api',
+  timeout: 8000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
+const unwrap = (response) => response.data;
+
 export default {
   getFlights() {
-    return apiClient.get('/flights');
+    return apiClient.get('/flights').then(unwrap);
   },
-  getCheckin() {
-    return apiClient.get('/checkin');
+  getCheckinsByFlight(flightId) {
+    return apiClient.get(`/checkin/flight/${flightId}`).then(unwrap);
   },
-  getBaggage() {
-    return apiClient.get('/baggage');
+  getBaggageByFlight(flightId) {
+    return apiClient.get(`/baggage/flight/${flightId}`).then(unwrap);
   },
   getNotifications() {
-    return apiClient.get('/notifications');
-  }
+    return apiClient.get('/notifications').then(unwrap);
+  },
 };
