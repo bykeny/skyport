@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,9 +31,9 @@ public class FlightService {
     @Transactional
     public Flight create(CreateFlightRequest req) {
         Flight f = new Flight();
-        f.setFlightNumber(req.getFlightNumber());
-        f.setOrigin(req.getOrigin());
-        f.setDestination(req.getDestination());
+        f.setFlightNumber(req.getFlightNumber().trim().toUpperCase());
+        f.setOrigin(req.getOrigin().trim().toUpperCase());
+        f.setDestination(req.getDestination().trim().toUpperCase());
         f.setScheduledDeparture(req.getScheduledDeparture());
         f.setScheduledArrival(req.getScheduledArrival());
         f.setAircraftType(req.getAircraftType());
@@ -90,13 +91,22 @@ public class FlightService {
 
     @Transactional(readOnly = true)
     public List<Flight> list(FlightStatus status, LocalDateTime from, LocalDateTime to) {
-        return repository.findByFilters(status, from, to);
+        return repository.findAll(Sort.by(Sort.Direction.ASC, "scheduledDeparture")).stream()
+                .filter(f -> status == null || f.getStatus() == status)
+                .filter(f -> from == null || !f.getScheduledDeparture().isBefore(from))
+                .filter(f -> to == null || !f.getScheduledDeparture().isAfter(to))
+                .toList();
     }
 
     @Transactional(readOnly = true)
     public List<Flight> search(String origin, String destination, LocalDate day) {
         LocalDateTime start = day != null ? day.atStartOfDay() : null;
         LocalDateTime end = day != null ? day.atTime(LocalTime.MAX) : null;
-        return repository.search(origin, destination, start, end);
+        return repository.findAll(Sort.by(Sort.Direction.ASC, "scheduledDeparture")).stream()
+                .filter(f -> origin == null || f.getOrigin().equalsIgnoreCase(origin))
+                .filter(f -> destination == null || f.getDestination().equalsIgnoreCase(destination))
+                .filter(f -> start == null || !f.getScheduledDeparture().isBefore(start))
+                .filter(f -> end == null || !f.getScheduledDeparture().isAfter(end))
+                .toList();
     }
 }

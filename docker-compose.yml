@@ -205,6 +205,7 @@ services:
       NOTIFICATION_DB_URL: jdbc:postgresql://db-notification:5432/notification
       POSTGRES_USER: ${POSTGRES_USER:-airport_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airport_pass}
+      KAFKA_BOOTSTRAP: kafka:29092
     ports:
       - "8086:8086"
     volumes:
@@ -249,7 +250,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airport_pass}
       KAFKA_BOOTSTRAP: kafka:29092
     ports:
-      - "8087:8085"
+      - "8087:8087"
     volumes:
       - ./backend/security-clearance-service:/workspace
       - security-clearance-maven-cache:/root/.m2

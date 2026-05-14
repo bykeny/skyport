@@ -151,6 +151,84 @@
                 </article>
               </div>
             </DomainPanel>
+
+            <DomainPanel id="gates" title="Gate Management" owner="Gate" :loading="loading.gates" :error="errors.gates" :has-data="gates.length > 0 || gateAssignments.length > 0" empty-message="No gates or active assignments returned by Gate Management." @create="openCreateModal('gates')">
+              <div class="space-y-4">
+                <div class="overflow-x-auto">
+                  <table class="min-w-full divide-y divide-slate-200 text-sm">
+                    <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <tr>
+                        <th class="px-4 py-3">Gate</th>
+                        <th class="px-4 py-3">Terminal</th>
+                        <th class="px-4 py-3">Type</th>
+                        <th class="px-4 py-3">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 bg-white">
+                      <tr v-for="gate in gates" :key="gate.id">
+                        <td class="px-4 py-3 font-semibold text-slate-950">#{{ gate.id }} {{ gate.gateNumber }}</td>
+                        <td class="px-4 py-3 text-slate-700">{{ gate.terminal }}</td>
+                        <td class="px-4 py-3 text-slate-600">{{ gate.gateType }}</td>
+                        <td class="px-4 py-3"><StatusBadge :status="gate.status" /></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div v-if="gateAssignments.length" class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <p class="text-sm font-semibold text-slate-800">Active Assignments</p>
+                  <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div v-for="assignment in gateAssignments" :key="assignment.id" class="rounded-md bg-white p-3 text-sm">
+                      <p class="font-semibold text-slate-950">{{ assignment.gateNumber }} -> Flight {{ assignment.flightId }}</p>
+                      <p class="mt-1 text-xs text-slate-500">{{ formatDateTime(assignment.assignedAt) }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </DomainPanel>
+
+            <DomainPanel id="retail" title="Retail Duty-free" owner="Retail" :loading="loading.retail" :error="errors.retail" :has-data="products.length > 0 || retailOrders.length > 0" empty-message="No products or orders returned by Retail Duty-free." @create="openCreateModal('products')">
+              <div class="space-y-4">
+                <div class="flex justify-end">
+                  <button type="button" class="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100" @click="openCreateModal('orders')">Create Order</button>
+                </div>
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <article v-for="product in products" :key="product.id" class="rounded-lg border border-slate-200 bg-white p-4">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="font-semibold text-slate-950">#{{ product.id }} {{ product.name }}</p>
+                        <p class="mt-1 text-sm text-slate-500">{{ product.sku }} - {{ product.category }}</p>
+                      </div>
+                      <span class="rounded-md bg-pink-100 px-2.5 py-1 text-xs font-semibold text-pink-800">{{ product.price }}</span>
+                    </div>
+                    <p class="mt-3 text-sm text-slate-600">Stock: {{ product.stockQuantity }}</p>
+                  </article>
+                </div>
+                <div v-if="retailOrders.length" class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <p class="text-sm font-semibold text-slate-800">Recent Orders</p>
+                  <div class="mt-3 space-y-2">
+                    <div v-for="order in retailOrders" :key="order.id" class="flex items-center justify-between rounded-md bg-white p-3 text-sm">
+                      <span>{{ order.productName }} x{{ order.quantity }} for passenger #{{ order.passengerId }}</span>
+                      <StatusBadge :status="order.status" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </DomainPanel>
+
+            <DomainPanel id="security" title="Security Clearance" owner="Security" :loading="loading.security" :error="errors.security" :has-data="clearances.length > 0" empty-message="No security clearances returned for checked-in passengers." @create="openCreateModal('security')">
+              <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <article v-for="clearance in clearances" :key="clearance.id" class="rounded-lg border border-slate-200 bg-white p-4">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <p class="font-semibold text-slate-950">Clearance #{{ clearance.id }}</p>
+                      <p class="mt-1 text-sm text-slate-500">Passenger #{{ clearance.passengerId }} / Check-in #{{ clearance.checkInId || 'N/A' }}</p>
+                    </div>
+                    <StatusBadge :status="clearance.status" />
+                  </div>
+                  <p class="mt-3 text-sm text-slate-600">{{ clearance.screeningZone || 'No zone assigned' }}</p>
+                </article>
+              </div>
+            </DomainPanel>
           </section>
         </div>
       </main>
@@ -213,6 +291,45 @@
               <textarea v-model="forms.notifications.body" required rows="4" class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100"></textarea>
             </label>
           </template>
+
+          <template v-else-if="activeModal === 'gates'">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <TextInput v-model.number="forms.gates.gateId" label="Gate ID" type="number" min="1" required />
+              <TextInput v-model.number="forms.gates.flightId" label="Flight ID" type="number" min="1" required />
+            </div>
+            <TextInput v-model="forms.gates.assignedAt" label="Assigned At" type="datetime-local" />
+          </template>
+
+          <template v-else-if="activeModal === 'products'">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <TextInput v-model="forms.products.sku" label="SKU" required />
+              <TextInput v-model="forms.products.category" label="Category" required />
+            </div>
+            <TextInput v-model="forms.products.name" label="Name" required />
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <TextInput v-model.number="forms.products.price" label="Price" type="number" min="0.01" step="0.01" required />
+              <TextInput v-model.number="forms.products.stockQuantity" label="Stock Quantity" type="number" min="0" required />
+            </div>
+          </template>
+
+          <template v-else-if="activeModal === 'orders'">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <TextInput v-model.number="forms.orders.passengerId" label="Passenger ID" type="number" min="1" required />
+              <TextInput v-model.number="forms.orders.flightId" label="Flight ID" type="number" min="1" required />
+            </div>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <TextInput v-model.number="forms.orders.productId" label="Product ID" type="number" min="1" required />
+              <TextInput v-model.number="forms.orders.quantity" label="Quantity" type="number" min="1" required />
+            </div>
+          </template>
+
+          <template v-else-if="activeModal === 'security'">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <TextInput v-model.number="forms.security.passengerId" label="Passenger ID" type="number" min="1" required />
+              <TextInput v-model.number="forms.security.checkInId" label="Check-in ID" type="number" min="1" />
+            </div>
+            <TextInput v-model="forms.security.screeningZone" label="Screening Zone" />
+          </template>
         </div>
 
         <div class="flex justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
@@ -235,12 +352,20 @@ const navItems = [
   { id: 'checkins', label: 'Passenger Check-in', owner: 'Umid' },
   { id: 'baggage', label: 'Baggage Tracking', owner: 'Tofig' },
   { id: 'notifications', label: 'Notifications', owner: 'Kanan' },
+  { id: 'gates', label: 'Gate Management', owner: 'Gate' },
+  { id: 'retail', label: 'Retail Duty-free', owner: 'Retail' },
+  { id: 'security', label: 'Security Clearance', owner: 'Security' },
 ];
 
 const flights = ref([]);
 const checkins = ref([]);
 const baggage = ref([]);
 const notifications = ref([]);
+const gates = ref([]);
+const gateAssignments = ref([]);
+const products = ref([]);
+const retailOrders = ref([]);
+const clearances = ref([]);
 const refreshing = ref(false);
 const activeModal = ref('');
 const submitting = ref(false);
@@ -252,6 +377,9 @@ const loading = ref({
   checkins: true,
   baggage: true,
   notifications: true,
+  gates: true,
+  retail: true,
+  security: true,
 });
 
 const errors = ref({
@@ -259,6 +387,9 @@ const errors = ref({
   checkins: '',
   baggage: '',
   notifications: '',
+  gates: '',
+  retail: '',
+  security: '',
 });
 
 const errorTitles = ref({
@@ -266,6 +397,9 @@ const errorTitles = ref({
   checkins: 'Service Offline',
   baggage: 'Service Offline',
   notifications: 'Service Offline',
+  gates: 'Service Offline',
+  retail: 'Service Offline',
+  security: 'Service Offline',
 });
 
 const forms = reactive({
@@ -273,6 +407,10 @@ const forms = reactive({
   checkins: blankCheckinForm(),
   baggage: blankBaggageForm(),
   notifications: blankNotificationForm(),
+  gates: blankGateAssignmentForm(),
+  products: blankProductForm(),
+  orders: blankOrderForm(),
+  security: blankSecurityForm(),
 });
 
 function blankFlightForm() {
@@ -311,11 +449,50 @@ function blankNotificationForm() {
   };
 }
 
+function blankGateAssignmentForm() {
+  return {
+    gateId: null,
+    flightId: null,
+    assignedAt: '',
+  };
+}
+
+function blankProductForm() {
+  return {
+    sku: '',
+    name: '',
+    category: '',
+    price: null,
+    stockQuantity: 0,
+  };
+}
+
+function blankOrderForm() {
+  return {
+    passengerId: null,
+    flightId: null,
+    productId: null,
+    quantity: 1,
+  };
+}
+
+function blankSecurityForm() {
+  return {
+    passengerId: null,
+    checkInId: null,
+    screeningZone: 'Zone A',
+  };
+}
+
 const modalCopy = {
   flights: { title: 'Create Flight', noun: 'Flight' },
   checkins: { title: 'Create Check-in', noun: 'Check-in' },
   baggage: { title: 'Register Baggage', noun: 'Baggage' },
   notifications: { title: 'Send Notification', noun: 'Notification' },
+  gates: { title: 'Assign Gate', noun: 'Assignment' },
+  products: { title: 'Create Product', noun: 'Product' },
+  orders: { title: 'Create Retail Order', noun: 'Order' },
+  security: { title: 'Create Security Clearance', noun: 'Clearance' },
 };
 
 const modalConfig = computed(() => modalCopy[activeModal.value] || { title: '', noun: 'Record' });
@@ -436,6 +613,27 @@ const statCards = computed(() => [
     caption: 'Loaded from /api/notifications',
     badgeClass: 'bg-violet-100 text-violet-800',
   },
+  {
+    label: 'Gates',
+    value: gates.value.length,
+    owner: 'Gate',
+    caption: 'Loaded from /api/gates',
+    badgeClass: 'bg-sky-100 text-sky-800',
+  },
+  {
+    label: 'Retail Items',
+    value: products.value.length,
+    owner: 'Retail',
+    caption: 'Loaded from /api/retail/products',
+    badgeClass: 'bg-pink-100 text-pink-800',
+  },
+  {
+    label: 'Clearances',
+    value: clearances.value.length,
+    owner: 'Security',
+    caption: 'Derived from passenger IDs',
+    badgeClass: 'bg-indigo-100 text-indigo-800',
+  },
 ]);
 
 const normalizeError = (err) => {
@@ -456,6 +654,8 @@ const extractValidationErrors = (err) => {
   if (!data) return [normalizeError(err)];
   if (Array.isArray(data)) return data.map(String);
   if (typeof data === 'string') return [data];
+  if (data.error) return [String(data.error)];
+  if (data.message) return [String(data.message)];
 
   const values = Object.values(data).flat();
   if (values.length) return values.map(String);
@@ -466,19 +666,19 @@ const extractValidationErrors = (err) => {
 const statusClass = (status) => {
   const normalized = String(status || '').toUpperCase();
 
-  if (['SENT', 'SCHEDULED', 'CHECKED_IN', 'SCREENED', 'LOADED', 'ARRIVED', 'DELIVERED'].includes(normalized)) {
+  if (['SENT', 'SCHEDULED', 'CHECKED_IN', 'SCREENED', 'LOADED', 'ARRIVED', 'DELIVERED', 'AVAILABLE', 'CLEARED', 'CONFIRMED', 'COLLECTED'].includes(normalized)) {
     return 'bg-emerald-100 text-emerald-800';
   }
 
-  if (['BOARDING', 'DEPARTED', 'IN_TRANSIT', 'BAGGAGE_DROPPED', 'BOARDED'].includes(normalized)) {
+  if (['BOARDING', 'DEPARTED', 'IN_TRANSIT', 'BAGGAGE_DROPPED', 'BOARDED', 'OCCUPIED', 'CREATED'].includes(normalized)) {
     return 'bg-blue-100 text-blue-800';
   }
 
-  if (['PENDING', 'REGISTERED'].includes(normalized)) {
+  if (['PENDING', 'REGISTERED', 'MAINTENANCE'].includes(normalized)) {
     return 'bg-amber-100 text-amber-800';
   }
 
-  if (['DELAYED', 'CANCELLED', 'FAILED'].includes(normalized)) {
+  if (['DELAYED', 'CANCELLED', 'FAILED', 'FLAGGED', 'DENIED'].includes(normalized)) {
     return 'bg-red-100 text-red-800';
   }
 
@@ -517,6 +717,10 @@ const openCreateModal = (domain) => {
   if (domain === 'checkins') Object.assign(forms.checkins, blankCheckinForm());
   if (domain === 'baggage') Object.assign(forms.baggage, blankBaggageForm());
   if (domain === 'notifications') Object.assign(forms.notifications, blankNotificationForm());
+  if (domain === 'gates') Object.assign(forms.gates, blankGateAssignmentForm());
+  if (domain === 'products') Object.assign(forms.products, blankProductForm());
+  if (domain === 'orders') Object.assign(forms.orders, blankOrderForm());
+  if (domain === 'security') Object.assign(forms.security, blankSecurityForm());
 };
 
 const closeModal = () => {
@@ -530,18 +734,27 @@ const resetState = () => {
     checkins: true,
     baggage: true,
     notifications: true,
+    gates: true,
+    retail: true,
+    security: true,
   };
   errors.value = {
     flights: '',
     checkins: '',
     baggage: '',
     notifications: '',
+    gates: '',
+    retail: '',
+    security: '',
   };
   errorTitles.value = {
     flights: 'Service Offline',
     checkins: 'Service Offline',
     baggage: 'Service Offline',
     notifications: 'Service Offline',
+    gates: 'Service Offline',
+    retail: 'Service Offline',
+    security: 'Service Offline',
   };
 };
 
@@ -562,15 +775,18 @@ const fetchFlightScopedData = async (flightIds, loader, domain) => {
 };
 
 const loadedFlightIds = () => flights.value.map((flight) => flight.id).filter(Boolean);
+const loadedPassengerIds = () => [...new Set(checkins.value.map((checkin) => checkin.passengerId).filter(Boolean))];
 
 const refreshFlights = async () => {
   loading.value.flights = true;
   try {
     flights.value = await api.getFlights();
     errors.value.flights = '';
+    return true;
   } catch (err) {
     flights.value = [];
     errors.value.flights = normalizeError(err);
+    return false;
   } finally {
     loading.value.flights = false;
   }
@@ -623,6 +839,72 @@ const refreshNotifications = async () => {
   }
 };
 
+const refreshGates = async (flightIds = loadedFlightIds()) => {
+  loading.value.gates = true;
+  try {
+    const [gateList, assignmentResults] = await Promise.all([
+      api.getGates(),
+      Promise.allSettled(flightIds.map((flightId) => api.getGateAssignmentByFlight(flightId))),
+    ]);
+    gates.value = gateList;
+    gateAssignments.value = assignmentResults
+      .filter((result) => result.status === 'fulfilled')
+      .map((result) => result.value);
+    errors.value.gates = '';
+  } catch (err) {
+    gates.value = [];
+    gateAssignments.value = [];
+    errors.value.gates = normalizeError(err);
+  } finally {
+    loading.value.gates = false;
+  }
+};
+
+const refreshRetail = async (flightIds = loadedFlightIds()) => {
+  loading.value.retail = true;
+  try {
+    const [productList, orderResults] = await Promise.all([
+      api.getProducts(),
+      Promise.allSettled(flightIds.map((flightId) => api.getRetailOrdersByFlight(flightId))),
+    ]);
+    products.value = productList;
+    retailOrders.value = orderResults
+      .filter((result) => result.status === 'fulfilled')
+      .flatMap((result) => result.value);
+    errors.value.retail = '';
+  } catch (err) {
+    products.value = [];
+    retailOrders.value = [];
+    errors.value.retail = normalizeError(err);
+  } finally {
+    loading.value.retail = false;
+  }
+};
+
+const refreshSecurity = async (passengerIds = loadedPassengerIds()) => {
+  loading.value.security = true;
+  try {
+    if (!passengerIds.length) {
+      clearances.value = [];
+      errors.value.security = '';
+      return;
+    }
+
+    const results = await Promise.allSettled(passengerIds.map((passengerId) => api.getClearancesByPassenger(passengerId)));
+    const rejected = results.find((result) => result.status === 'rejected');
+    if (rejected) {
+      errors.value.security = normalizeError(rejected.reason);
+    } else {
+      errors.value.security = '';
+    }
+    clearances.value = results
+      .filter((result) => result.status === 'fulfilled')
+      .flatMap((result) => result.value);
+  } finally {
+    loading.value.security = false;
+  }
+};
+
 const markDependentDomainsNotChecked = () => {
   checkins.value = [];
   baggage.value = [];
@@ -649,7 +931,12 @@ const fetchDashboard = async () => {
     ]);
   }
 
-  await refreshNotifications();
+  await Promise.all([
+    refreshNotifications(),
+    refreshGates(),
+    refreshRetail(),
+    refreshSecurity(),
+  ]);
   refreshing.value = false;
 };
 
@@ -659,10 +946,14 @@ const submitCreateForm = async () => {
 
   try {
     if (activeModal.value === 'flights') {
-      await api.createFlight({ ...forms.flights });
+      const createdFlight = await api.createFlight({ ...forms.flights });
       closeModal();
       showToast('Flight created successfully.');
-      await refreshFlights();
+      const refreshed = await refreshFlights();
+      if (!refreshed) {
+        flights.value = [createdFlight, ...flights.value.filter((flight) => flight.id !== createdFlight.id)];
+        errors.value.flights = 'Flight was created, but the list endpoint is still returning an error. Restart Flight Scheduling to load the full table.';
+      }
       return;
     }
 
@@ -705,6 +996,58 @@ const submitCreateForm = async () => {
       closeModal();
       showToast('Notification sent successfully.');
       await refreshNotifications();
+      return;
+    }
+
+    if (activeModal.value === 'gates') {
+      const payload = {
+        gateId: Number(forms.gates.gateId),
+        flightId: Number(forms.gates.flightId),
+        assignedAt: forms.gates.assignedAt || null,
+      };
+      await api.createGateAssignment(payload);
+      closeModal();
+      showToast('Gate assigned successfully.');
+      await refreshGates();
+      return;
+    }
+
+    if (activeModal.value === 'products') {
+      await api.createProduct({
+        sku: forms.products.sku,
+        name: forms.products.name,
+        category: forms.products.category,
+        price: Number(forms.products.price),
+        stockQuantity: Number(forms.products.stockQuantity || 0),
+      });
+      closeModal();
+      showToast('Product created successfully.');
+      await refreshRetail();
+      return;
+    }
+
+    if (activeModal.value === 'orders') {
+      await api.createRetailOrder({
+        passengerId: Number(forms.orders.passengerId),
+        flightId: Number(forms.orders.flightId),
+        productId: Number(forms.orders.productId),
+        quantity: Number(forms.orders.quantity || 1),
+      });
+      closeModal();
+      showToast('Retail order created successfully.');
+      await refreshRetail();
+      return;
+    }
+
+    if (activeModal.value === 'security') {
+      await api.createClearance({
+        passengerId: Number(forms.security.passengerId),
+        checkInId: forms.security.checkInId ? Number(forms.security.checkInId) : null,
+        screeningZone: forms.security.screeningZone,
+      });
+      closeModal();
+      showToast('Security clearance created successfully.');
+      await refreshSecurity();
     }
   } catch (err) {
     formErrors.value = extractValidationErrors(err);

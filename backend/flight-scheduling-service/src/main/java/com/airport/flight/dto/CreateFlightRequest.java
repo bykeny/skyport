@@ -3,6 +3,7 @@ package com.airport.flight.dto;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 public class CreateFlightRequest {
@@ -11,9 +12,11 @@ public class CreateFlightRequest {
     private String flightNumber;
 
     @NotBlank
+    @Size(min = 3, max = 3, message = "origin must be a 3-letter airport code, for example TLL")
     private String origin;
 
     @NotBlank
+    @Size(min = 3, max = 3, message = "destination must be a 3-letter airport code, for example IST")
     private String destination;
 
     @NotNull
