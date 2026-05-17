@@ -105,6 +105,7 @@ onMounted(loadFlights);
                 <div class="flex flex-wrap items-center gap-2">
                   <select v-model="statusUpdate[flight.id]" class="rounded-lg border border-white/10 bg-slate-950 px-2 py-1 text-xs text-slate-100">
                     <option value="">Select status</option>
+                    <option value="SCHEDULED">SCHEDULED</option>
                     <option value="ON_TIME">ON_TIME</option>
                     <option value="BOARDING">BOARDING</option>
                     <option value="DELAYED">DELAYED</option>

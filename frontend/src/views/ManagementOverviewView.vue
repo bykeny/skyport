@@ -14,20 +14,36 @@ const notifications = ref([]);
 const loadOverview = async () => {
   loading.value = true;
   errorMessage.value = '';
-  try {
-    const [flightData, gateData, noticeData] = await Promise.all([
-      api.getFlights(),
-      api.getGates(),
-      api.getNotifications(),
-    ]);
-    flights.value = flightData || [];
-    gates.value = gateData || [];
-    notifications.value = noticeData || [];
-  } catch (err) {
-    errorMessage.value = 'Unable to load operations overview.';
-  } finally {
-    loading.value = false;
+
+  const [flightResult, gateResult, noticeResult] = await Promise.allSettled([
+    api.getFlights(),
+    api.getGates(),
+    api.getNotifications(),
+  ]);
+
+  if (flightResult.status === 'fulfilled') {
+    flights.value = flightResult.value || [];
+  } else {
+    flights.value = [];
   }
+
+  if (gateResult.status === 'fulfilled') {
+    gates.value = gateResult.value || [];
+  } else {
+    gates.value = [];
+  }
+
+  if (noticeResult.status === 'fulfilled') {
+    notifications.value = noticeResult.value || [];
+  } else {
+    notifications.value = [];
+  }
+
+  if (flightResult.status === 'rejected' || gateResult.status === 'rejected' || noticeResult.status === 'rejected') {
+    errorMessage.value = 'Some services are temporarily unavailable.';
+  }
+
+  loading.value = false;
 };
 
 const occupiedGates = () => gates.value.filter((gate) => String(gate.status || '').toUpperCase() === 'OCCUPIED').length;
