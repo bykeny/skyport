@@ -95,7 +95,7 @@ const resetWizard = () => {
         <input v-model="form.baggageCount" type="number" min="0" class="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-white" placeholder="Baggage Count" />
       </div>
 
-      <div v-if="step === 3" class="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-700">
+      <div v-if="step === 3" class="mt-6 rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-4 py-4 text-sm text-emerald-100">
         Check-in flow completed. You can return to the dashboard or start another check-in.
       </div>
 

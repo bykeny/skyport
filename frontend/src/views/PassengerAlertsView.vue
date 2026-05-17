@@ -32,7 +32,7 @@ onMounted(loadNotifications);
   <div class="space-y-6">
     <SectionCard title="Notification Center" subtitle="Personalized Kafka-driven updates delivered in real time.">
       <template #actions>
-        <button class="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold" @click="loadNotifications">
+        <button class="rounded-full border border-white/20 px-3 py-2 text-xs font-semibold text-slate-100" @click="loadNotifications">
           Refresh
         </button>
       </template>
