@@ -83,6 +83,18 @@ services:
     volumes:
       - db-notification-data:/var/lib/postgresql/data
 
+  db-auth:
+    image: postgres:16
+    container_name: db-auth
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-airport_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airport_pass}
+      POSTGRES_DB: auth_service
+    ports:
+      - "5439:5432"
+    volumes:
+      - db-auth-data:/var/lib/postgresql/data
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.1
     container_name: zookeeper
@@ -115,6 +127,7 @@ services:
       - apps
     working_dir: /workspace
     depends_on:
+      - auth-service
       - flight-scheduling-service
       - gate-management-service
       - passenger-checkin-service
@@ -256,6 +269,25 @@ services:
       - security-clearance-maven-cache:/root/.m2
     command: mvn spring-boot:run
 
+  auth-service:
+    image: maven:3.9-eclipse-temurin-21
+    container_name: auth-service
+    profiles:
+      - apps
+    working_dir: /workspace
+    depends_on:
+      - db-auth
+    environment:
+      AUTH_DB_URL: jdbc:postgresql://db-auth:5432/auth_service
+      POSTGRES_USER: ${POSTGRES_USER:-airport_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airport_pass}
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./backend/auth-service:/workspace
+      - auth-service-maven-cache:/root/.m2
+    command: mvn spring-boot:run
+
   frontend:
     image: nginx:1.27-alpine
     container_name: airport-frontend
@@ -277,6 +309,7 @@ volumes:
   db-security-clearance-data:
   db-retail-dutyfree-data:
   db-notification-data:
+  db-auth-data:
   api-gateway-maven-cache:
   flight-scheduling-maven-cache:
   gate-management-maven-cache:
@@ -284,3 +317,4 @@ volumes:
   passenger-checkin-maven-cache:
   notification-maven-cache:
   retail-dutyfree-maven-cache:
+  auth-service-maven-cache:
