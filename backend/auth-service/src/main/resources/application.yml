@@ -17,5 +17,5 @@ spring:
 
 app:
   jwt:
-    secret: "dev-auth-secret-change-me-32-bytes-min"
+    secret: ${JWT_SECRET:dev-auth-secret-change-me-32-bytes-min}
     expiration-hours: 24

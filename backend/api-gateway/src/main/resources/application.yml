@@ -97,6 +97,85 @@ spring:
           filters:
             - RewritePath=/api/notifications(?<segment>/?.*), /api/v1/notifications${segment}
 
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+  cloud:
+    gateway:
+      routes:
+        - id: auth-service
+          uri: http://auth-service:8088
+          predicates:
+            - Path=/api/auth/**,/api/auth
+          filters:
+            - RewritePath=/api/auth(?<segment>/?.*), /api/v1/auth${segment}
+
+        - id: flight-scheduling-service
+          uri: http://flight-scheduling-service:8081
+          predicates:
+            - Path=/api/flights/**,/api/flights
+          filters:
+            - RewritePath=/api/flights(?<segment>/?.*), /api/v1/flights${segment}
+
+        - id: gate-management-service
+          uri: http://gate-management-service:8082
+          predicates:
+            - Path=/api/gates/**,/api/gates
+          filters:
+            - RewritePath=/api/gates(?<segment>/?.*), /api/v1/gates${segment}
+
+        - id: gate-assignment-service
+          uri: http://gate-management-service:8082
+          predicates:
+            - Path=/api/gate-assignments/**,/api/gate-assignments
+          filters:
+            - RewritePath=/api/gate-assignments(?<segment>/?.*), /api/v1/gate-assignments${segment}
+
+        - id: passenger-checkin-service
+          uri: http://passenger-checkin-service:8083
+          predicates:
+            - Path=/api/checkin/**,/api/checkin
+          filters:
+            - RewritePath=/api/checkin(?<segment>/?.*), /api/v1/checkins${segment}
+
+        - id: baggage-tracking-service
+          uri: http://baggage-tracking-service:8084
+          predicates:
+            - Path=/api/baggage/**,/api/baggage
+          filters:
+            - RewritePath=/api/baggage(?<segment>/?.*), /api/v1/baggage${segment}
+
+        - id: retail-dutyfree-service
+          uri: http://retail-dutyfree-service:8085
+          predicates:
+            - Path=/api/retail/**,/api/retail
+          filters:
+            - RewritePath=/api/retail(?<segment>/?.*), /api/v1${segment}
+
+        - id: security-clearance-service
+          uri: http://security-clearance-service:8087
+          predicates:
+            - Path=/api/security/**,/api/security
+          filters:
+            - RewritePath=/api/security(?<segment>/?.*), /api/v1${segment}
+
+        # More specific route must come first so templates don't get rewritten to /api/v1/notifications/templates
+        - id: notification-service-templates
+          uri: http://notification-service:8086
+          predicates:
+            - Path=/api/notifications/templates/**,/api/notifications/templates
+          filters:
+            - RewritePath=/api/notifications/templates(?<segment>/?.*), /api/v1/templates${segment}
+
+        - id: notification-service-notifications
+          uri: http://notification-service:8086
+          predicates:
+            - Path=/api/notifications/**,/api/notifications
+          filters:
+            - RewritePath=/api/notifications(?<segment>/?.*), /api/v1/notifications${segment}
+
 app:
   jwt:
-    secret: "dev-auth-secret-change-me-32-bytes-min"
+    secret: ${JWT_SECRET:dev-auth-secret-change-me-32-bytes-min}
