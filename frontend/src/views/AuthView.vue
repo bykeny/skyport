@@ -124,7 +124,7 @@ const handleAuth = async () => {
             <label class="block text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">Role</label>
             <select
               v-model="registerForm.role"
-              class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-cyan-300"
+              class="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none focus:border-cyan-300"
             >
               <option value="PASSENGER">Passenger</option>
               <option value="ADMIN">Admin</option>
