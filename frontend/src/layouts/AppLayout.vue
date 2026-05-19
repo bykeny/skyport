@@ -66,7 +66,7 @@ const logout = () => {
 };
 
 const isPassenger = computed(() => authState.role === 'PASSENGER');
-const isManagement = computed(() => authState.role === 'ADMIN' || authState.role === 'STAFF');
+const isManagement = computed(() => authState.role === 'ADMIN');
 
 watch(() => authState.userId, (next) => {
   if (next) {

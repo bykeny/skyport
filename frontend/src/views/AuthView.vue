@@ -23,11 +23,6 @@ const registerForm = ref({
   role: 'PASSENGER',
 });
 
-const demoAccounts = [
-  { label: 'Admin Demo', username: 'admin', password: 'password' },
-  { label: 'Passenger Demo', username: 'passenger', password: 'password' },
-];
-
 const activeForm = computed(() => (mode.value === 'login' ? loginForm.value : registerForm.value));
 
 const canSubmit = computed(() => {
@@ -35,14 +30,6 @@ const canSubmit = computed(() => {
   return form.username && form.password;
 });
 
-const selectDemo = (event) => {
-  const index = Number(event.target.value);
-  if (Number.isNaN(index)) return;
-  const selected = demoAccounts[index];
-  if (!selected) return;
-  loginForm.value.username = selected.username;
-  loginForm.value.password = selected.password;
-};
 
 const handleAuth = async () => {
   errorMessage.value = '';
@@ -93,7 +80,7 @@ const handleAuth = async () => {
 
 <template>
   <section class="px-6 py-16">
-    <div class="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1.2fr_1fr]">
+    <div class="mx-auto max-w-3xl">
       <div class="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl">
         <p class="text-xs font-semibold uppercase tracking-[0.35em] text-cyan-200">SkyPort Portal</p>
         <h1 class="mt-4 text-3xl font-semibold text-white">Welcome back to the airport command layer.</h1>
@@ -140,10 +127,9 @@ const handleAuth = async () => {
               class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-cyan-300"
             >
               <option value="PASSENGER">Passenger</option>
-              <option value="STAFF">Staff</option>
               <option value="ADMIN">Admin</option>
             </select>
-            <p class="text-xs text-slate-400">Admin/Staff access should be used only for internal testing.</p>
+            <p class="text-xs text-slate-400">Admin access should be used only for internal testing.</p>
           </div>
 
           <p v-if="errorMessage" class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-200">
@@ -158,23 +144,6 @@ const handleAuth = async () => {
             {{ loading ? 'Please wait...' : mode === 'login' ? 'Sign In' : 'Create Account' }}
           </button>
         </form>
-      </div>
-
-      <div class="rounded-3xl border border-white/10 bg-slate-900/70 p-8 shadow-2xl">
-        <h2 class="text-lg font-semibold text-white">Demo Accounts</h2>
-        <p class="mt-2 text-sm text-slate-300">Quickly load demo credentials for the presentation.</p>
-        <select
-          class="mt-4 w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-slate-100"
-          @change="selectDemo"
-        >
-          <option value="">Select a demo user</option>
-          <option v-for="(account, index) in demoAccounts" :key="account.label" :value="index">
-            {{ account.label }}
-          </option>
-        </select>
-        <div class="mt-6 rounded-xl border border-white/10 bg-white/5 p-4 text-xs text-slate-300">
-          Update the demo usernames and passwords in this panel if your local seed data differs.
-        </div>
       </div>
     </div>
   </section>
