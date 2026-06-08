@@ -81,6 +81,9 @@ export default {
   getCheckinsByFlight(flightId) {
     return apiClient.get(`/checkin/flight/${flightId}`).then(unwrap);
   },
+  getCheckinsByPassenger(passengerId) {
+    return apiClient.get(`/checkin/passenger/${passengerId}`).then(unwrap);
+  },
   getPassengerFlightCheckin(passengerId, flightId) {
     return apiClient.get(`/checkin/passenger/${passengerId}/flight/${flightId}`).then(unwrap);
   },

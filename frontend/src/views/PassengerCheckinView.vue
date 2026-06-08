@@ -1,28 +1,47 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import api from '../services/api';
+import { useAuth } from '../composables/useAuth';
 import SectionCard from '../components/ui/SectionCard.vue';
 import InlineAlert from '../components/ui/InlineAlert.vue';
 import PrimaryButton from '../components/ui/PrimaryButton.vue';
 
+const { state: authState } = useAuth();
 const step = ref(1);
 const loading = ref(false);
 const errorMessage = ref('');
 const successMessage = ref('');
 
+const flights = ref([]);
+const loadingFlights = ref(false);
+
 const form = ref({
-  passengerId: '',
   flightId: '',
   seatNumber: '',
   baggageCount: 0,
 });
 
-const canContinue = computed(() => form.value.passengerId && form.value.flightId);
+const canContinue = computed(() => form.value.flightId);
 const canConfirm = computed(() => form.value.seatNumber);
 
+const selectedFlight = computed(() => flights.value.find((flight) => String(flight.id) === String(form.value.flightId)));
+
+const loadFlights = async () => {
+  loadingFlights.value = true;
+  try {
+    flights.value = await api.getFlights();
+  } catch (err) {
+    flights.value = [];
+  } finally {
+    loadingFlights.value = false;
+  }
+};
+
 const validateFlight = async () => {
-  const flights = await api.getFlights();
-  const exists = flights.some((flight) => String(flight.id) === String(form.value.flightId));
+  if (!flights.value.length && !loadingFlights.value) {
+    await loadFlights();
+  }
+  const exists = flights.value.some((flight) => String(flight.id) === String(form.value.flightId));
   if (!exists) throw new Error('Flight not found');
 };
 
@@ -50,8 +69,11 @@ const submitCheckin = async () => {
   loading.value = true;
   errorMessage.value = '';
   try {
+    if (!authState.userId) {
+      throw new Error('Missing user');
+    }
     await api.createCheckin({
-      passengerId: Number(form.value.passengerId),
+      passengerId: Number(authState.userId),
       flightId: Number(form.value.flightId),
       seatNumber: form.value.seatNumber,
       baggageCount: Number(form.value.baggageCount || 0),
@@ -69,8 +91,10 @@ const resetWizard = () => {
   step.value = 1;
   errorMessage.value = '';
   successMessage.value = '';
-  form.value = { passengerId: '', flightId: '', seatNumber: '', baggageCount: 0 };
+  form.value = { flightId: '', seatNumber: '', baggageCount: 0 };
 };
+
+onMounted(loadFlights);
 </script>
 
 <template>
@@ -85,9 +109,34 @@ const resetWizard = () => {
       <InlineAlert v-if="errorMessage" tone="warning" :message="errorMessage" />
       <InlineAlert v-if="successMessage" tone="info" :message="successMessage" />
 
-      <div v-if="step === 1" class="mt-6 grid gap-4 md:grid-cols-2">
-        <input v-model="form.passengerId" class="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-white" placeholder="Passenger ID" />
-        <input v-model="form.flightId" class="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-white" placeholder="Flight ID" />
+      <div v-if="step === 1" class="mt-6 space-y-4">
+        <div class="grid gap-3 md:grid-cols-[2fr_1fr]">
+          <select
+            v-model="form.flightId"
+            class="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-white"
+          >
+            <option value="">Select a flight</option>
+            <option v-for="flight in flights" :key="flight.id" :value="flight.id">
+              {{ flight.flightNumber || 'N/A' }} · {{ flight.origin }} → {{ flight.destination }}
+            </option>
+          </select>
+          <button
+            class="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100"
+            type="button"
+            @click="loadFlights"
+          >
+            {{ loadingFlights ? 'Refreshing...' : 'Refresh Flights' }}
+          </button>
+        </div>
+
+        <div v-if="selectedFlight" class="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
+          <p class="font-semibold text-white">Flight {{ selectedFlight.flightNumber || 'N/A' }}</p>
+          <p class="mt-1 text-slate-300">{{ selectedFlight.origin }} → {{ selectedFlight.destination }}</p>
+          <p class="mt-1 text-slate-400">Departure: {{ selectedFlight.scheduledDeparture || 'TBD' }}</p>
+        </div>
+        <div v-else class="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
+          Choose a flight to continue.
+        </div>
       </div>
 
       <div v-if="step === 2" class="mt-6 grid gap-4 md:grid-cols-2">

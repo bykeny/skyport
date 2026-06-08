@@ -9,6 +9,8 @@ public interface PassengerCheckInRepository extends JpaRepository<PassengerCheck
 
     Optional<PassengerCheckIn> findByPassengerIdAndFlightId(Long passengerId, Long flightId);
 
+    List<PassengerCheckIn> findByPassengerId(Long passengerId);
+
     List<PassengerCheckIn> findByFlightId(Long flightId);
 
     boolean existsByPassengerIdAndFlightId(Long passengerId, Long flightId);

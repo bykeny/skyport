@@ -12,10 +12,17 @@ const { state: authState } = useAuth();
 const loading = ref(false);
 const errorMessage = ref('');
 const flights = ref([]);
+const checkins = ref([]);
 const notifications = ref([]);
 
+const passengerFlights = computed(() => {
+  if (!checkins.value.length) return [];
+  const flightIds = new Set(checkins.value.map((item) => String(item.flightId)));
+  return flights.value.filter((flight) => flight && flightIds.has(String(flight.id)));
+});
+
 const nextFlight = computed(() => {
-  const upcoming = [...flights.value]
+  const upcoming = [...passengerFlights.value]
     .filter((flight) => flight?.scheduledDeparture)
     .sort((a, b) => new Date(a.scheduledDeparture).getTime() - new Date(b.scheduledDeparture).getTime());
   return upcoming[0] || null;
@@ -25,12 +32,18 @@ const loadDashboard = async () => {
   loading.value = true;
   errorMessage.value = '';
   try {
-    const [flightData, noticeData] = await Promise.all([
-      api.getFlights(),
-      authState.userId ? api.getNotificationsByRecipient(authState.userId) : Promise.resolve([]),
+    const flightPromise = api.getFlights();
+    const noticePromise = authState.userId ? api.getNotificationsByRecipient(authState.userId) : Promise.resolve([]);
+    const checkinPromise = authState.userId ? api.getCheckinsByPassenger(authState.userId) : Promise.resolve([]);
+
+    const [flightData, noticeData, checkinData] = await Promise.all([
+      flightPromise,
+      noticePromise,
+      checkinPromise,
     ]);
     flights.value = flightData || [];
     notifications.value = noticeData || [];
+    checkins.value = checkinData || [];
   } catch (err) {
     errorMessage.value = 'Some services are temporarily unavailable.';
   } finally {
@@ -58,7 +71,7 @@ onMounted(loadDashboard);
     />
 
     <div class="grid gap-4 md:grid-cols-3">
-      <StatCard label="Upcoming Flights" :value="flights.length" hint="Flight Scheduling" />
+      <StatCard label="Upcoming Flights" :value="passengerFlights.length" hint="Flight Scheduling" />
       <StatCard label="Active Alerts" :value="notifications.length" hint="Notification Service" />
       <StatCard label="Next Flight" :value="nextFlight?.flightNumber || 'TBD'" hint="Based on departure time" />
     </div>

@@ -69,6 +69,12 @@ public class CheckInService {
                 .orElseThrow(() -> new NotFoundException("Check-in not found for passenger " + passengerId + " and flight " + flightId));
     }
 
+    public List<CheckInResponse> getPassengerCheckIns(Long passengerId) {
+        return checkInRepository.findByPassengerId(passengerId).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     public List<CheckInResponse> getFlightCheckIns(Long flightId) {
         return checkInRepository.findByFlightId(flightId).stream()
                 .map(this::toResponse)

@@ -44,6 +44,12 @@ public class CheckInController {
         return ResponseEntity.ok(checkInService.getPassengerFlightCheckIn(passengerId, flightId));
     }
 
+    @GetMapping("/passenger/{passengerId}")
+    @Operation(summary = "List check-ins for a passenger")
+    public ResponseEntity<List<CheckInResponse>> getPassengerCheckIns(@PathVariable Long passengerId) {
+        return ResponseEntity.ok(checkInService.getPassengerCheckIns(passengerId));
+    }
+
     @GetMapping("/flight/{flightId}")
     @Operation(summary = "List check-ins for a flight")
     public ResponseEntity<List<CheckInResponse>> getFlightCheckIns(@PathVariable Long flightId) {
