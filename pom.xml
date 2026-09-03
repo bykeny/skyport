@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.airport</groupId>
+    <artifactId>skyport-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>skyport-parent</name>
+    <description>SkyPort - Distributed Airport Management System (Root Aggregator)</description>
+
+    <modules>
+        <module>backend/api-gateway</module>
+        <module>backend/auth-service</module>
+        <module>backend/baggage-tracking-service</module>
+        <module>backend/flight-scheduling-service</module>
+        <module>backend/gate-management-service</module>
+        <module>backend/notification-service</module>
+        <module>backend/passenger-checkin-service</module>
+        <module>backend/retail-dutyfree-service</module>
+        <module>backend/security-clearance-service</module>
+    </modules>
+</project>
